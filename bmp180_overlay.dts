@@ -1,0 +1,20 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+    compatible = "brcm,bcm2835";
+
+    fragment@0 {
+        target = <&i2c1>;
+        __overlay__ {
+            bmp180@77 {
+                compatible = "invensense,bmp180";
+                reg = <0x77>; // I2C address
+                status = "okay";
+                // Optional interrupt support
+                // interrupt-parent = <&gpio>;
+                // interrupts = <17 IRQ_TYPE_LEVEL_HIGH>; // If INT pin is connected to GPIO17
+            };
+        };
+    };
+};

@@ -1,0 +1,75 @@
+Thư viện cần thiết:
+
+#include <stdio.h> 
+#include <stdlib.h> 
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/ioctl.h> 
+#include <errno.h> 
+#include <math.h>
+
+Ứng dụng chính của driver bmp180: 
+
+Driver này xử lý việc đọc dữ liệu thô từ cảm biến, thực hiện các phép tính hiệu chuẩn cần thiết và cung cấp một giao diện cho các ứng dụng userspace thông qua một character device /dev/bmp180.
+
+Trên user space, bằng cách sử dụng ioctl có thể đọc trị đo từ cảm biến bmp180 từ driver thông qua driver đã cài, cũng như có thể tính toán độ cao so với mực nước biển và áp suất tại mực nước biển.
+
+
+Quy trình của hàm probe khi phát hiện thiết bị:
+============================================================
+
+-> Kiểm tra driver đã được đăng ký cho client khác chưa.
+-> Đọc Chip ID của cảm biến để xác nhận là BMP180 (0x55).
+-> Đọc dữ liệu hiệu chuẩn từ cảm biến và kiểm tra tính hợp lệ.
+-> Đăng ký một character device.
+-> Tạo một device class và device file trong /dev.
+
+
+Các thao tác ioctl tương tác với driver trên user space:
+============================================================
+
+-> BMP180_IOCTL_SET_OSS ... Đặt chế độ lấy mẫu OSS cho driver
+	Ex: ioctl(fd, BMP180_IOCTL_SET_OSS, &oss_mode)
+ 	 Truyền một con trỏ chứa địa chỉ của giá trị oss_mode đã thiết lập
+
+-> BMP180_IOCTL_GET_TEMPERATURE ... Đọc giá trị nhiệt độ đo được của cảm biến bmp180
+	Ex: ioctl(fd, BMP180_IOCTL_GET_TEMPERATURE, &temp)
+ 	 Đọc giá trị nhiệt độ và lưu vào địa chỉ của biến temp
+ 	 Giá trị trả về là một số nguyên với đơn vị 0.1°C
+
+-> BMP180_IOCTL_GET_PRESSURE ... Đọc giá trị áp suất đo được của cảm biến bmp180
+	Ex: ioctl(fd, BMP180_IOCTL_GET_PRESSURE, &press)
+ 	 Đọc giá trị áp suất và lưu vào địa chỉ của biến press
+ 	 Giá trị trả về là một số nguyên với đơn vị Pa
+
+-> BMP180_IOCTL_RESET_MODULE ... Dùng để Reset lại module bmp180
+	 Ex: ioctl(fd, BMP180_IOCTL_RESET_MODULE)
+
+Xem đoạn code mẫu trong thư mục tải về để hiểu thêm chi tiết.
+
+
+Note:
+============================================================
+
+Áp suất hiển thị là hPa, với 1hPa = Pa/100.0
+Giá trị áp suất tham chiếu P0 có thể thay đổi tuỳ theo khu vực, theo datasheet P0 = 101325Pa
+Việc tính toán áp suất tại mực nước biển và độ cao dùng tham số đầu vào là Pa
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
